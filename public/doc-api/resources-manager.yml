@@ -1,0 +1,110 @@
+swagger: "2.0"
+info:
+  description: "SimplePAD API"
+  version: "1.0.0"
+  title: "SimplePad API"
+host: "simplepad.localhost"
+basePath: "/api"
+tags:
+- name: "pad"
+  description: "CRUD Pads"
+schemes:
+- "https"
+- "http"
+paths:
+  /pad:
+    post:
+      tags:
+      - "pad"
+      summary: "Create a new pad"
+      description: "Create a new PAD (with a random id)"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Pad"
+      responses:
+        405:
+          description: "Invalid input"
+        200:
+          description: "SuccessFull"
+          schema:
+            $ref: "#/definitions/Pad"
+
+  /pad/{pad_id}:
+    get:
+      tags:
+      - "pad"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "pad_id"
+        required: true
+        type: string
+        maxLength: 6
+        minLength: 6
+      responses:
+        404:
+          description: "Does not exists"
+        200:
+          description: "SuccessFull"
+          schema:
+            $ref: "#/definitions/Pad"
+    post:
+      tags:
+      - "pad"
+      description: "Create a new PAD with the given ID"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "pad_id"
+        required: true
+        type: string
+        maxLength: 6
+        minLength: 6
+      - in: "body"
+        name: "body"
+        description: "content"
+        required: true
+        schema:
+          $ref: "#/definitions/PadPost"
+      responses:
+        405:
+          description: "Invalid input"
+        409:
+          description: "Given Id already exists"
+        200:
+          description: "SuccessFull"
+          schema:
+            $ref: "#/definitions/Pad"      
+      
+definitions:
+  Pad:
+    type: "object"
+    properties:
+      id:
+        type: string
+        maxLength: 6
+        minLength: 6
+      content:
+        type: string
+      create_date:
+        type: string
+        format: date
+  PadPost:
+    type: "object"
+    required:
+      - content
+    properties:
+      content:
+        type: string
+
+
+
