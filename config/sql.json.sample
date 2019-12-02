@@ -1,0 +1,5 @@
+    {
+        "dsn": "mysql:dbname=resourcesManager;host=localhost",
+        "user": "resourcesManager",
+        "password": "your pass"
+    }
