@@ -1,110 +1,270 @@
 swagger: "2.0"
 info:
-  description: "SimplePAD API"
+  description: "Resources Manager API"
   version: "1.0.0"
   title: "SimplePad API"
-host: "simplepad.localhost"
+host: "localhost"
 basePath: "/api"
 tags:
-- name: "pad"
-  description: "CRUD Pads"
+- name: "user"
+  description: "Operations about user"
+- name: "session"
+  description: "logon and log out methods to get a token"
 schemes:
 - "https"
-- "http"
 paths:
-  /pad:
+  /user:
     post:
       tags:
-      - "pad"
-      summary: "Create a new pad"
-      description: "Create a new PAD (with a random id)"
-      consumes:
-      - "application/json"
+      - "user"
+      summary: "Create user"
+      description: "Need pass an api key to authentificate."
       produces:
       - "application/json"
       parameters:
       - in: "body"
         name: "body"
+        description: "Created user object"
         required: true
         schema:
-          $ref: "#/definitions/Pad"
+          $ref: "#/definitions/User"
+      - in: header
+        name: X-API-Key
+        type: string
+        required: true
       responses:
-        405:
-          description: "Invalid input"
-        200:
-          description: "SuccessFull"
-          schema:
-            $ref: "#/definitions/Pad"
-
-  /pad/{pad_id}:
+        default:
+          description: "successful operation"
+        401:
+          description: Authentification failed
+        403:
+          description: You are not allowed to do that
+  /user/createWithList:
+    post:
+      tags:
+      - "user"
+      summary: "Creates list of users with given input array"
+      description: ""
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "List of user object"
+        required: true
+        schema:
+          type: "array"
+          items:
+            $ref: "#/definitions/User"
+      - in: header
+        name: X-API-Key
+        type: string
+        required: true
+      responses:
+        default:
+          description: "successful operation"
+        401:
+          description: Authentification failed
+        403:
+          description: You are not allowed to do that
+  /user/{username}:
     get:
       tags:
-      - "pad"
+      - "user"
+      summary: "Get user by user name"
+      description: ""
       produces:
       - "application/json"
       parameters:
-      - in: "path"
-        name: "pad_id"
+      - name: "username"
+        in: "path"
+        description: "The name that needs to be fetched."
         required: true
+        type: "string"
+      - in: header
+        name: X-API-Key
         type: string
-        maxLength: 6
-        minLength: 6
+        required: false
       responses:
-        404:
-          description: "Does not exists"
         200:
-          description: "SuccessFull"
+          description: "successful operation"
           schema:
-            $ref: "#/definitions/Pad"
-    post:
+            $ref: "#/definitions/UserInfo"
+        400:
+          description: "Invalid username supplied"
+        404:
+          description: "User not found"
+        401:
+          description: Authentification failed
+        403:
+          description: You are not allowed to do that
+    put:
       tags:
-      - "pad"
-      description: "Create a new PAD with the given ID"
+      - "user"
+      summary: "Updated user"
+      description: "This can only be done by the logged in user."
       produces:
       - "application/json"
       parameters:
-      - in: "path"
-        name: "pad_id"
+      - name: "username"
+        in: "path"
+        description: "name that need to be updated"
         required: true
-        type: string
-        maxLength: 6
-        minLength: 6
+        type: "string"
       - in: "body"
         name: "body"
-        description: "content"
+        description: "Updated user object"
         required: true
         schema:
-          $ref: "#/definitions/PadPost"
+          $ref: "#/definitions/User"
+      - in: header
+        name: X-API-Key
+        type: string
+        required: true
       responses:
-        405:
-          description: "Invalid input"
-        409:
-          description: "Given Id already exists"
+        400:
+          description: "Invalid user supplied"
+        404:
+          description: "User not found"
+        401:
+          description: Authentification failed
+        403:
+          description: You are not allowed to do that
+    delete:
+      tags:
+      - "user"
+      summary: "Delete user"
+      description: "This can only be done by the logged in user."
+      operationId: "deleteUser"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "username"
+        in: "path"
+        description: "The name that needs to be deleted"
+        required: true
+        type: "string"
+      - in: header
+        name: X-API-Key
+        type: string
+        required: true
+      responses:
+        400:
+          description: "Invalid username supplied"
+        404:
+          description: "User not found"
+        401:
+          description: Authentification failed
+        403:
+          description: You are not allowed to do that
+  /session:
+    get:
+      tags:
+      - session
+      summary: "Get current session info"
+      parameters:
+      - in: header
+        name: X-API-Key
+        type: string
+        required: true
+      responses:
+        401:
+          description: Authentification failed
         200:
-          description: "SuccessFull"
+          description: "successful operation"
           schema:
-            $ref: "#/definitions/Pad"      
+            $ref: "#/definitions/Session"
+    post:
+      tags:
+      - session
+      summary: "Try to auth and retrive an api key"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "auth"
+        required: true
+        schema:
+          $ref: "#/definitions/InternalAuth"
+      responses:
+        401:
+          description: Authentification failed
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Session"
+        
       
 definitions:
-  Pad:
+  User:
     type: "object"
     properties:
       id:
-        type: string
-        maxLength: 6
-        minLength: 6
-      content:
-        type: string
-      create_date:
-        type: string
-        format: date
-  PadPost:
+        type: "integer"
+        format: "int64"
+      username:
+        type: "string"
+      firstName:
+        type: "string"
+      lastName:
+        type: "string"
+      email:
+        type: "string"
+      password:
+        type: "string"
+        format: "password"
+      phone:
+        type: "string"
+      userStatus:
+        type: "integer"
+        format: "int32"
+        description: "User Status"
+      authMethod:
+        type: "string"
+        pattern: '^(internal|ldap|cas)$'
+  UserInfo:
     type: "object"
-    required:
-      - content
     properties:
-      content:
+      id:
+        type: "integer"
+        format: "int64"
+      username:
+        type: "string"
+      firstName:
+        type: "string"
+      lastName:
+        type: "string"
+      email:
+        type: "string"
+      phone:
+        type: "string"
+      userStatus:
+        type: "integer"
+        format: "int32"
+        description: "User Status"
+      authMethod:
+        type: "string"
+        pattern: '^(internal|ldap|cas)$'
+      lastConnect:
+        type: "string"
+        format: date-time
+  Session:
+    type: "object"
+    properties:
+      user:
+        type: object
+      createDate:
         type: string
-
-
-
+        format: date-time
+      endDate:
+        type: string
+        format: date-time
+      X-API-Key:
+        type: string
+  InternalAuth:
+    type: "object"
+    properties:
+      username:
+        type: "string"
+      password:
+        type: "string"
+        format: password
