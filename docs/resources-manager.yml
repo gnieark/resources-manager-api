@@ -8,9 +8,10 @@ basePath: "/api"
 tags:
 - name: "user"
   description: "Operations about user"
+- name: "session"
+  description: "logon and log out methods to get a token"
 schemes:
 - "https"
-- "http"
 paths:
   /user:
     post:
@@ -18,7 +19,6 @@ paths:
       - "user"
       summary: "Create user"
       description: "Need pass an api key to authentificate."
-      operationId: "createUser"
       produces:
       - "application/json"
       parameters:
@@ -35,41 +35,17 @@ paths:
       responses:
         default:
           description: "successful operation"
-  /user/createWithArray:
-    post:
-      tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithArrayInput"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
-          items:
-            $ref: "#/definitions/User"
-      - in: header
-        name: X-API-Key
-        type: string
-        required: true
-      responses:
-        default:
-          description: "successful operation"
+        401:
+          description: Authentification failed
+        403:
+          description: You are not allowed to do that
   /user/createWithList:
     post:
       tags:
       - "user"
       summary: "Creates list of users with given input array"
       description: ""
-      operationId: "createUsersWithListInput"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - in: "body"
@@ -87,15 +63,17 @@ paths:
       responses:
         default:
           description: "successful operation"
+        401:
+          description: Authentification failed
+        403:
+          description: You are not allowed to do that
   /user/{username}:
     get:
       tags:
       - "user"
       summary: "Get user by user name"
       description: ""
-      operationId: "getUserByName"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - name: "username"
@@ -111,19 +89,21 @@ paths:
         200:
           description: "successful operation"
           schema:
-            $ref: "#/definitions/User"
+            $ref: "#/definitions/UserInfo"
         400:
           description: "Invalid username supplied"
         404:
           description: "User not found"
+        401:
+          description: Authentification failed
+        403:
+          description: You are not allowed to do that
     put:
       tags:
       - "user"
       summary: "Updated user"
       description: "This can only be done by the logged in user."
-      operationId: "updateUser"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - name: "username"
@@ -146,6 +126,10 @@ paths:
           description: "Invalid user supplied"
         404:
           description: "User not found"
+        401:
+          description: Authentification failed
+        403:
+          description: You are not allowed to do that
     delete:
       tags:
       - "user"
@@ -153,7 +137,6 @@ paths:
       description: "This can only be done by the logged in user."
       operationId: "deleteUser"
       produces:
-      - "application/xml"
       - "application/json"
       parameters:
       - name: "username"
@@ -170,6 +153,47 @@ paths:
           description: "Invalid username supplied"
         404:
           description: "User not found"
+        401:
+          description: Authentification failed
+        403:
+          description: You are not allowed to do that
+  /session:
+    get:
+      tags:
+      - session
+      summary: "Get current session info"
+      parameters:
+      - in: header
+        name: X-API-Key
+        type: string
+        required: true
+      responses:
+        401:
+          description: Authentification failed
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Session"
+    post:
+      tags:
+      - session
+      summary: "Try to auth and retrive an api key"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "auth"
+        required: true
+        schema:
+          $ref: "#/definitions/InternalAuth"
+      responses:
+        401:
+          description: Authentification failed
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Session"
+        
+      
 definitions:
   User:
     type: "object"
@@ -187,9 +211,60 @@ definitions:
         type: "string"
       password:
         type: "string"
+        format: "password"
       phone:
         type: "string"
       userStatus:
         type: "integer"
         format: "int32"
         description: "User Status"
+      authMethod:
+        type: "string"
+        pattern: '^(internal|ldap|cas)$'
+  UserInfo:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      username:
+        type: "string"
+      firstName:
+        type: "string"
+      lastName:
+        type: "string"
+      email:
+        type: "string"
+      phone:
+        type: "string"
+      userStatus:
+        type: "integer"
+        format: "int32"
+        description: "User Status"
+      authMethod:
+        type: "string"
+        pattern: '^(internal|ldap|cas)$'
+      lastConnect:
+        type: "string"
+        format: date-time
+  Session:
+    type: "object"
+    properties:
+      user:
+        type: object
+      createDate:
+        type: string
+        format: date-time
+      endDate:
+        type: string
+        format: date-time
+      X-API-Key:
+        type: string
+  InternalAuth:
+    type: "object"
+    properties:
+      username:
+        type: "string"
+      password:
+        type: "string"
+        format: password
