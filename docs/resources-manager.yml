@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
   description: "Resources Manager API"
   version: "1.0.0"
-  title: "SimplePad API"
+  title: "Resources Manager API"
 host: "localhost"
 basePath: "/api"
 tags:
